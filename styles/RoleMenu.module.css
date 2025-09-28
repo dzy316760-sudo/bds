@@ -1,0 +1,19 @@
+.menu {
+  list-style: none;
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+}
+
+.link {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 107, 53, 0.12);
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.link:hover {
+  background: rgba(255, 107, 53, 0.25);
+}
