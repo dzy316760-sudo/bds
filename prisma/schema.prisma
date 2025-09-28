@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  Landlord
+  Marketer
+  Broker
+}
+
+enum PropertyType {
+  phòng_trọ
+  nhà_nguyên_căn
+  văn_phòng
+}
+
+enum Furniture {
+  cơ_bản
+  đầy_đủ
+  không
+}
+
+enum ListingStatus {
+  active
+  rented
+}
+
+model User {
+  id       String   @id @default(uuid())
+  email    String   @unique
+  phone    String?  @unique
+  role     Role
+  verified Boolean  @default(false)
+  profile  Json?
+  listings Listing[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Listing {
+  id           String         @id @default(uuid())
+  userId       String
+  user         User           @relation(fields: [userId], references: [id])
+  propertyType PropertyType
+  images       String[]
+  address      String
+  mapLocation  Json
+  area         Float
+  bedrooms     Int
+  bathrooms    Int
+  furniture    Furniture
+  price        Float
+  deposit      Float
+  status       ListingStatus @default(active)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
