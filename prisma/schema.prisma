@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  TENANT
+  LANDLORD
+}
+
+enum ListingStatus {
+  DRAFT
+  AVAILABLE
+  RENTED
+}
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String?
+  role           Role      @default(TENANT)
+  hashedPassword String?
+  listings       Listing[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Listing {
+  id            String         @id @default(cuid())
+  title         String
+  propertyType  String
+  description   String?
+  address       String
+  latitude      Float
+  longitude     Float
+  area          Float
+  bedrooms      Int
+  bathrooms     Int
+  furniture     Json
+  price         Int
+  deposit       Int?
+  media         Json
+  status        ListingStatus  @default(AVAILABLE)
+  landlordId    String
+  landlord      User           @relation(fields: [landlordId], references: [id])
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
