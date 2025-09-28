@@ -12,13 +12,44 @@ import {
   sendEmailVerification
 } from 'firebase/auth';
 
-const authSchema = z.object({
-  mode: z.enum(['email', 'phone']),
-  email: z.string().email('Email không hợp lệ').optional(),
-  password: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự').optional(),
-  phone: z.string().optional(),
-  role: z.enum(['Landlord', 'Marketer', 'Broker'])
-});
+const authSchema = z
+  .object({
+    mode: z.enum(['email', 'phone']),
+    email: z.string().email('Email không hợp lệ').optional(),
+    password: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự').optional(),
+    phone: z
+      .string()
+      .regex(/^(\+?84|0)(\d{9,10})$/, 'Số điện thoại phải bao gồm mã quốc gia (+84) hoặc số 0 đầu.')
+      .optional(),
+    role: z.enum(['Landlord', 'Marketer', 'Broker'])
+  })
+  .superRefine((values, ctx) => {
+    if (values.mode === 'email') {
+      if (!values.email) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['email'],
+          message: 'Vui lòng nhập email của bạn.'
+        });
+      }
+
+      if (!values.password) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['password'],
+          message: 'Vui lòng tạo mật khẩu.'
+        });
+      }
+    }
+
+    if (values.mode === 'phone' && !values.phone) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['phone'],
+        message: 'Vui lòng nhập số điện thoại hợp lệ.'
+      });
+    }
+  });
 
 type AuthValues = z.infer<typeof authSchema>;
 
@@ -55,10 +86,17 @@ const AuthForm = () => {
       }
 
       if (values.mode === 'phone' && values.phone) {
-        const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-          size: 'invisible'
-        });
-        const confirmation = await signInWithPhoneNumber(auth, values.phone, verifier);
+        if (typeof window === 'undefined') {
+          throw new Error('reCAPTCHA chỉ khả dụng trên trình duyệt.');
+        }
+
+        if (!window.recaptchaVerifier) {
+          window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            size: 'invisible'
+          });
+        }
+
+        const confirmation = await signInWithPhoneNumber(auth, values.phone, window.recaptchaVerifier);
         setMessage('Mã OTP đã được gửi. Vui lòng nhập mã trong ứng dụng Firebase của bạn.');
         console.log('OTP confirmation result', confirmation);
       }

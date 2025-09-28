@@ -4,13 +4,51 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
-const searchSchema = z.object({
-  keyword: z.string().min(2, 'Từ khóa quá ngắn').optional().or(z.literal('')),
-  propertyType: z.enum(['phòng trọ', 'nhà nguyên căn', 'văn phòng']).optional(),
-  minPrice: z.coerce.number().min(0, 'Giá trị không hợp lệ').optional(),
-  maxPrice: z.coerce.number().min(0, 'Giá trị không hợp lệ').optional(),
-  area: z.coerce.number().min(0, 'Diện tích không hợp lệ').optional()
-});
+const parseOptionalNumber = (value: unknown) => {
+  if (value === '' || value === null || typeof value === 'undefined') {
+    return undefined;
+  }
+
+  if (typeof value === 'number') {
+    return Number.isNaN(value) ? undefined : value;
+  }
+
+  const normalized = String(value)
+    .trim()
+    .replace(/\s+/g, '')
+    .replace(/\./g, '')
+    .replace(/,/g, '.');
+  const numeric = Number(normalized);
+  return Number.isNaN(numeric) ? undefined : numeric;
+};
+
+const optionalCurrencyField = z
+  .preprocess(parseOptionalNumber, z.number().min(0, 'Giá trị không hợp lệ'))
+  .optional();
+
+const searchSchema = z
+  .object({
+    keyword: z.string().min(2, 'Từ khóa quá ngắn').optional().or(z.literal('')),
+    propertyType: z.enum(['phòng trọ', 'nhà nguyên căn', 'văn phòng']).optional(),
+    minPrice: optionalCurrencyField,
+    maxPrice: optionalCurrencyField,
+    area: z
+      .preprocess(parseOptionalNumber, z.number().min(0, 'Diện tích không hợp lệ'))
+      .optional()
+  })
+  .superRefine((values, ctx) => {
+    if (
+      typeof values.minPrice === 'number' &&
+      typeof values.maxPrice === 'number' &&
+      values.minPrice > values.maxPrice
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['maxPrice'],
+        message: 'Giá cao nhất phải lớn hơn hoặc bằng giá thấp nhất'
+      });
+    }
+  });
 
 export type QuickSearchValues = z.infer<typeof searchSchema>;
 
@@ -68,6 +106,7 @@ const QuickSearchForm = () => {
             <label className="text-sm font-medium text-slate-700">Giá thấp nhất (₫)</label>
             <input
               type="number"
+              step="100000"
               {...register('minPrice', { valueAsNumber: true })}
               placeholder="0"
               className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -78,6 +117,7 @@ const QuickSearchForm = () => {
             <label className="text-sm font-medium text-slate-700">Giá cao nhất (₫)</label>
             <input
               type="number"
+              step="100000"
               {...register('maxPrice', { valueAsNumber: true })}
               placeholder="50.000.000"
               className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -89,6 +129,7 @@ const QuickSearchForm = () => {
           <label className="text-sm font-medium text-slate-700">Diện tích tối thiểu (m²)</label>
           <input
             type="number"
+            step="1"
             {...register('area', { valueAsNumber: true })}
             placeholder="20"
             className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"

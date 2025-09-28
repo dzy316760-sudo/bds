@@ -29,9 +29,20 @@ const ListingCard = ({ listing }: { listing: Listing }) => {
         </div>
         <div className="flex items-center justify-between">
           <p className="text-lg font-semibold text-secondary">
-            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(listing.price)}
+            {new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND',
+              maximumFractionDigits: 0
+            }).format(listing.price)}
           </p>
-          <p className="text-xs text-slate-500">Đặt cọc: {listing.deposit.toLocaleString('vi-VN')}₫</p>
+          <p className="text-xs text-slate-500">
+            Đặt cọc:{' '}
+            {new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND',
+              maximumFractionDigits: 0
+            }).format(listing.deposit)}
+          </p>
         </div>
       </div>
     </article>

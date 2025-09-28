@@ -32,3 +32,9 @@ export interface UserProfile {
     avatar?: string;
   } | null;
 }
+
+declare global {
+  interface Window {
+    recaptchaVerifier?: import('firebase/auth').RecaptchaVerifier;
+  }
+}

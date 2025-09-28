@@ -6,7 +6,7 @@ Nền tảng cho thuê bất động sản được xây dựng với **Next.js 
 
 - Giao diện App Router với bố cục Navbar, Footer, trang chủ và trang 404 tuỳ chỉnh.
 - Tailwind CSS cấu hình với font Inter, hỗ trợ responsive.
-- Form tìm kiếm nhanh và form đăng ký sử dụng React Hook Form + Zod.
+- Form tìm kiếm nhanh và form đăng ký sử dụng React Hook Form + Zod với kiểm tra dữ liệu chéo.
 - Tích hợp Firebase Authentication (Email/Password + Phone OTP) với hướng dẫn cấu hình.
 - Prisma ORM kết nối PostgreSQL với schema đã định nghĩa cho Users và Listings.
 
